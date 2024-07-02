@@ -68,9 +68,9 @@
             buildRustCrateForPkgs = pkgs: pkgs.buildRustCrate.override {
               defaultCrateOverrides = pkgs.defaultCrateOverrides // {
                 nh_darwin = attrs: rec {
-                  postInstall = ''
+                  postInstall = with pkgs; ''
                     wrapProgram $out/bin/nh_darwin \
-                      --prefix PATH : ${lib.makeBinPath buildInputs}
+                      --prefix PATH : ${lib.makeBinPath [nvd nix-output-monitor]}
                     mkdir completions
                     $out/bin/nh_darwin completions --shell bash > completions/nh_darwin.bash
                     $out/bin/nh_darwin completions --shell zsh > completions/nh_darwin.zsh
@@ -78,15 +78,12 @@
                     installShellCompletion completions/*
                   '';
 
-                  buildInputs = with pkgs; [
-                    nvd
-                    nix-output-monitor
-                  ]
-                  ++ lib.optionals
-                    stdenv.isDarwin
+                  buildInputs = with pkgs; lib.optionals stdenv.isDarwin
                     [ darwin.apple_sdk.frameworks.Security ];
 
                   nativeBuildInputs = with pkgs; [
+                    nvd
+                    nix-output-monitor
                     installShellFiles
                     makeBinaryWrapper
                   ];
